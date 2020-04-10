@@ -120,7 +120,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <IncludePath>C:\Users\tseri\Github\Warlock\Warlock\KernelDevLib;C:\Users\tseri\Github\Warlock\Warlock\phnt;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\KernelDevLib;$(ProjectDir)\phnt;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
