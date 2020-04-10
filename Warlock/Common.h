@@ -2,6 +2,7 @@
 
 #define MAX_NAME_SIZE 64
 #define MAGIC_VALUE 0xBABECAFE
+#define CLIENT_NAME L"Client.exe"
 
 enum class messageType
 {

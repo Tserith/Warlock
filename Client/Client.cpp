@@ -8,7 +8,7 @@ void main()
 
 		PVOID addr = GetTargetBaseAddr();
 
-		WriteMemory((PUINT8)addr + 0x102d, 0x4141414141414141);
+		// do read and write operations here
 	}
 	else
 	{

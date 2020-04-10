@@ -3,7 +3,7 @@
 
 struct UnicodeString
 {
-	// must ensure String is null terminated
+	// assumes String is null terminated
 	BOOLEAN Set(PCWSTR String)
 	{
 		Free();

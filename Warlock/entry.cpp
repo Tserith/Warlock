@@ -3,7 +3,7 @@
 #include "Common.h"
 #include "ntimage.h"
 
-UNICODE_STRING clientImageName = RTL_CONSTANT_STRING(L"Client.exe");
+UNICODE_STRING clientImageName = RTL_CONSTANT_STRING(CLIENT_NAME);
 ObCallback* callback = nullptr;
 
 struct
