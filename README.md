@@ -14,8 +14,8 @@ This project was done purely for educational purposes. I am aware that this tool
 ## Features
 
 - Can access user memory regardless of page protection
-- Driver does not create any kernel objects (excluding it's own DRIVER_OBJECT)
-- Driver does not create any system threads
+- Does not create any kernel objects (excluding it's own DRIVER_OBJECT)
+- Does not create any system threads
 
 
 
