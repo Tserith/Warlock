@@ -5,7 +5,7 @@ This project was done purely for educational purposes. I am aware that this tool
 
 ## Usage
 
-1. Define [client process name](https://github.com/Tserith/Warlock/blob/master/Warlock/Common.h#L5)
+1. Optionally change client process [name](https://github.com/Tserith/Warlock/blob/master/Warlock/Common.h#L5)
 2. Create custom client by adding to [Client.cpp](https://github.com/Tserith/Warlock/blob/master/Client/Client.cpp)
 3. Load driver and run client program
 
