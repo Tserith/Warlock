@@ -66,7 +66,7 @@ OB_PREOP_CALLBACK_STATUS HandleRequest(PVOID, POB_PRE_OPERATION_INFORMATION)
 		if (task.mailbox && task.clientPid)
 		{
 			MmMdl clientMdl(task.mailbox, sizeof(WarlockComms));
-			MmPages clientPages(clientMdl, false);
+			MmPages clientPages(clientMdl, IoReadAccess);
 			auto message = (WarlockComms*)clientPages.GetMdlVa();
 
 			if (message)
@@ -95,33 +95,6 @@ OB_PREOP_CALLBACK_STATUS HandleRequest(PVOID, POB_PRE_OPERATION_INFORMATION)
 								SIZE_T imageSize;
 
 								task.targetBaseAddr = FindUserModule(proc.GetEprocess(), &task.targetImageName.str, &imageSize);
-
-								if (task.targetBaseAddr)
-								{
-									NTSTATUS status = STATUS_SUCCESS;
-
-									auto headerOffset = ((PIMAGE_DOS_HEADER)task.targetBaseAddr)->e_lfanew;
-									auto ntHeader = (PIMAGE_NT_HEADERS)((PUINT8)task.targetBaseAddr + headerOffset);
-									auto section = IMAGE_FIRST_SECTION(ntHeader);
-
-									for (int i = 0; i < ntHeader->FileHeader.NumberOfSections; i++)
-									{
-										if (!(section[i].Characteristics & IMAGE_SCN_MEM_WRITE))
-										{
-											// make all unwritable pages dirty to enable copy-on-write
-											MmMdl mdl(
-												(PUINT8)task.targetBaseAddr + section[i].VirtualAddress,
-												section[i].SizeOfRawData
-											);
-											MmPages(mdl, true);
-										}
-									}
-
-									if (!NT_SUCCESS(status))
-									{
-										DbgPrint("[-] ZwProtectVirtualMemory (%i)\n", status);
-									}
-								}
 							}
 
 							if (task.targetBaseAddr)
@@ -140,10 +113,14 @@ OB_PREOP_CALLBACK_STATUS HandleRequest(PVOID, POB_PRE_OPERATION_INFORMATION)
 					{
 						if (task.targetPid && task.targetBaseAddr)
 						{
+							auto access = IoReadAccess;
+							if (message->request.type == requestType::write)
+								access = IoWriteAccess;
+
 							Process target(task.targetPid);
 							PsContext targetCtx(target);
 							MmMdl targetMdl(message->request.addr, sizeof(PVOID));
-							MmPages targetPages(targetMdl, false);
+							MmPages targetPages(targetMdl, access);
 							auto targetAddr = (PUINT64)targetPages.GetMdlVa();
 
 							if (targetAddr)
@@ -256,7 +233,7 @@ void InspectNewImage(PUNICODE_STRING FullImageName, HANDLE ProcessId, PIMAGE_INF
 								if (*dataMemory == (PVOID*)MAGIC_VALUE)
 								{
 									MmMdl mdl(dataMemory, sizeof(PVOID));
-									MmPages pages(mdl, true);
+									MmPages pages(mdl, IoWriteAccess);
 									auto dataAddr = (PVOID*)pages.GetMdlVa();
 
 									if (dataAddr)

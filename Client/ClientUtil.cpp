@@ -3,7 +3,7 @@
 // initialized by driver
 volatile WarlockComms* message = (WarlockComms*)MAGIC_VALUE;
 
-static void SendMessage()
+static void SendRequest()
 {
 	// invoke the driver's object callback
 	HANDLE h = OpenProcess(PROCESS_ALL_ACCESS, 0, GetCurrentProcessId());
@@ -16,7 +16,7 @@ void SetTarget(const wchar_t* Target, PVOID TargetPid)
 	message->target.pid = TargetPid;
 	wcscpy_s((wchar_t*)message->target.targetImage, sizeof(message->target.targetImage) / 2, Target);
 	
-	SendMessage();
+	SendRequest();
 }
 
 PVOID GetTargetBaseAddr()
@@ -26,7 +26,7 @@ PVOID GetTargetBaseAddr()
 	while (!message->info.baseAddr)
 	{
 		message->type = messageType::getInfo;
-		SendMessage();
+		SendRequest();
 	}
 
 	return message->info.baseAddr;
@@ -39,7 +39,7 @@ PVOID GetTargetPid()
 	while (!message->info.pid)
 	{
 		message->type = messageType::getInfo;
-		SendMessage();
+		SendRequest();
 	}
 
 	return message->info.pid;
@@ -51,7 +51,7 @@ UINT64 ReadMemory(PVOID Addr)
 	message->request.type = requestType::read;
 	message->request.addr = Addr;
 
-	SendMessage();
+	SendRequest();
 
 	return message->request.value;
 }
@@ -63,5 +63,5 @@ void WriteMemory(PVOID Addr, UINT64 Value)
 	message->request.addr = Addr;
 	message->request.value = Value;
 
-	SendMessage();
+	SendRequest();
 }

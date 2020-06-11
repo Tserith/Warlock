@@ -16,34 +16,24 @@ ZwProtectVirtualMemory(
 struct MmPages
 {
 public:
-	MmPages(MmMdl& Mdl, bool SetPagesToDirty)
+	MmPages(MmMdl& Mdl, enum _LOCK_OPERATION Access)
 	{
 		mdl = Mdl.GetMdl();
 
 		if (mdl)
 		{
-			if (SetPagesToDirty)
+			__try
 			{
-				__try
-				{
-					MmProbeAndLockPages(mdl, UserMode, IoWriteAccess);
-				}
-				__except (EXCEPTION_EXECUTE_HANDLER)
-				{
-					// try forcing copy-on-write first
-					ForceCOW();
-
-					SetPagesToDirty = false;
-				}
+				MmProbeAndLockPages(mdl, UserMode, Access);
 			}
-			
-			if (!SetPagesToDirty)
+			__except (EXCEPTION_EXECUTE_HANDLER)
 			{
-				__try
+				if (Access)
 				{
-					MmProbeAndLockPages(mdl, UserMode, IoReadAccess);
+					// force copy-on-write and try again
+					SetCowAndLock();
 				}
-				__except (EXCEPTION_EXECUTE_HANDLER)
+				else
 				{
 					mdl = nullptr;
 
@@ -76,7 +66,7 @@ public:
 			MmUnlockPages(mdl);
 	}
 private:
-	void ForceCOW()
+	void SetCowAndLock()
 	{
 		auto vAddr = MmGetMdlVirtualAddress(mdl);
 		auto size = (SIZE_T)MmGetMdlByteCount(mdl);
@@ -92,10 +82,20 @@ private:
 
 		if (!NT_SUCCESS(status))
 		{
-			DbgPrint("[-] ZwProtectVirtualMemory (%i)\n", status);
+			DbgPrint("[-] ZwProtectVirtualMemory (%x)\n", status);
 		}
 
-		MmProbeAndLockPages(mdl, UserMode, IoWriteAccess);
+		// dirty page
+		__try
+		{
+			MmProbeAndLockPages(mdl, UserMode, IoWriteAccess);
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+			mdl = nullptr;
+
+			DbgPrint("[-] MmProbeAndLockPages\n");
+		}
 
 		status = ZwProtectVirtualMemory(
 			ZwCurrentProcess(),
@@ -107,7 +107,7 @@ private:
 
 		if (!NT_SUCCESS(status))
 		{
-			DbgPrint("[-] ZwProtectVirtualMemory (%i)\n", status);
+			DbgPrint("[-] ZwProtectVirtualMemory (%x)\n", status);
 		}
 	}
 	PMDL mdl;

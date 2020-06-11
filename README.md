@@ -1,5 +1,5 @@
 # Warlock
-This project was done purely for educational purposes. I am aware that this tool could be used to evade anti-cheat in games. If you use this to cheat and it gets signatured that's not my problem.
+This project was done purely for educational purposes. The driver provides a process with indirect read/write access to another process's memory from ring 0. An example use case is if access to a process is being defended from kernel mode.
 
 
 
@@ -13,7 +13,7 @@ This project was done purely for educational purposes. I am aware that this tool
 
 ## Features
 
-- Can access user memory regardless of page protection
+- Can access user memory regardless of page protection (Dirties executable pages on write)
 - Does not create any kernel objects (excluding it's own DRIVER_OBJECT)
 - Does not create any system threads
 
